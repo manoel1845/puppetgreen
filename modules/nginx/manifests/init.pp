@@ -1,4 +1,10 @@
-class nginx {
+class nginx(
+  Integer $worker_connections       = 1204,
+  Enum['on','off'] $sendfile_config = 'on',
+  Boolean $enable_onboot            = true,
+  Enum['on','off'] $tcp_nodelay     = 'on',
+  Integer $keepalive_timeout        = 65,
+  ) {
 
   case $facts['os']['family'] {
     'RedHat': {
@@ -53,21 +59,24 @@ class nginx {
   }
 
   file { "${confdir}/nginx.conf":
-    ensure => file,
-    content => epp('nginx/nginx.conf.epp', {
-      nginx_user     => $service_user,
-      nginx_logdir   => $logdir,
-      nginx_confdir  => $confdir,
-      nginx_blockdir => $blockdir,
-      nginx_docroot  => $docroot,
+    ensure                     => file,
+    content                    => epp('nginx/nginx.conf.epp', {
+      nginx_user               => $service_user,
+      nginx_logdir             => $logdir,
+      nginx_confdir            => $confdir,
+      nginx_blockdir           => $blockdir,
+      nginx_docroot            => $docroot,
+      nginx_worker_connections => $worker_connections,
+      nginx_sendfile           => $sendfile_config,
+      nginx_tcp_nodelay        => $tcp_nodelay,
+      nginx_keepalive_timeout  => $keepalive_timeout,
       }),
     notify => Service[$service_name],
   }
 
   service { $service_name:
     ensure => running,
-    enable => true,
+    enable => $enable_onboot,
   }
 
 }
-
