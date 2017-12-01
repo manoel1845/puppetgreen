@@ -29,8 +29,8 @@ http {
 
     sendfile            <%= $nginx_sendfile %>;
     tcp_nopush          on;
-    tcp_nodelay         <%= $nginx_tcp_nodelay %>;
-    keepalive_timeout   <%= $nginx_keepalive_timeout %>;
+    tcp_nodelay         on;
+    keepalive_timeout   65;
     types_hash_max_size 2048;
 
     include             <%= $nginx_confdir %>/mime.types;

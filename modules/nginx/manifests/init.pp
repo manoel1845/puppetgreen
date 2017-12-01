@@ -1,10 +1,10 @@
 class nginx(
-  Integer $worker_connections       = 1024,
+  Integer $worker_connections       = 1204,
   Enum['on','off'] $sendfile_config = 'on',
   Boolean $enable_onboot            = true,
-  Enum['on','off'] $tcp_nodelay     = 'on',
-  Integer $keepalive_timeout        = 65,
   ) {
+
+  require nginx::params
 
   package { $nginx::params::package_name:
     ensure => installed,
@@ -20,8 +20,8 @@ class nginx(
   }
 
   file { "${nginx::params::confdir}/nginx.conf":
-    ensure                     => file,
-    content                    => epp('nginx/nginx.conf.epp', {
+    ensure => file,
+    content => epp('nginx/nginx.conf.epp', {
       nginx_user               => $nginx::params::service_user,
       nginx_logdir             => $nginx::params::logdir,
       nginx_confdir            => $nginx::params::confdir,
@@ -29,8 +29,6 @@ class nginx(
       nginx_docroot            => $nginx::params::docroot,
       nginx_worker_connections => $worker_connections,
       nginx_sendfile           => $sendfile_config,
-      nginx_tcp_nodelay        => $tcp_nodelay,
-      nginx_keepalive_timeout  => $keepalive_timeout,
       }),
     notify => Service[$nginx::params::service_name],
   }

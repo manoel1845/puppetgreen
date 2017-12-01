@@ -1,4 +1,4 @@
-class nginx::params{
+class nginx::params {
 
   case $facts['os']['family'] {
     'RedHat': {
@@ -38,4 +38,6 @@ class nginx::params{
     group  => 'root',
     mode   => '0664'
   }
+
+
 }
