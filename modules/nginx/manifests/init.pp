@@ -1,80 +1,41 @@
 class nginx(
-  Integer $worker_connections       = 1204,
+  Integer $worker_connections       = 1024,
   Enum['on','off'] $sendfile_config = 'on',
   Boolean $enable_onboot            = true,
   Enum['on','off'] $tcp_nodelay     = 'on',
   Integer $keepalive_timeout        = 65,
   ) {
 
-  case $facts['os']['family'] {
-    'RedHat': {
-      $package_name = 'nginx'
-      $docroot      = '/var/www'
-      $confdir      = '/etc/nginx'
-      $blockdir     = '/etc/nginx/conf.d'
-      $logdir       = '/var/log/nginx'
-      $service_user = 'nginx'
-      $service_name = 'nginx'
-    }
-    'Debian': {
-      $package_name = 'nginx'
-      $docroot      = '/var/www'
-      $confdir      = '/etc/nginx'
-      $blockdir     = '/etc/nginx/conf.d'
-      $logdir       = '/var/log/nginx'
-      $service_user = 'www-data'
-      $service_name = 'nginx'
-    }
-    'windows': {
-      $package_name = 'nginx-service'
-      $docroot      = 'C:/ProgramData/nginx/html'
-      $confdir      = 'C:/ProgramData/nginx/conf'
-      $blockdir      = 'C:/ProgramData/nginx/conf.d'
-      $logdir       = 'C:/ProgramData/nginx/logs'
-      $service_user = 'nobody'
-      $service_name = 'nginx'
-    }
-    default: {
-        fail("O sistema ${facts['os']['family']} não é suportado.")
-    }
-  }
-
-  File {
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0664'
-  }
-
-  package { $package_name:
+  package { $nginx::params::package_name:
     ensure => installed,
   }
 
-  file { $docroot:
+  file { $nginx::params::docroot:
     ensure => directory,
   }
 
-  file { "${docroot}/index.html":
+  file { "${nginx::params::docroot}/index.html":
     ensure => file,
     source => 'puppet:///modules/nginx/index.html'
   }
 
-  file { "${confdir}/nginx.conf":
+  file { "${nginx::params::confdir}/nginx.conf":
     ensure                     => file,
     content                    => epp('nginx/nginx.conf.epp', {
-      nginx_user               => $service_user,
-      nginx_logdir             => $logdir,
-      nginx_confdir            => $confdir,
-      nginx_blockdir           => $blockdir,
-      nginx_docroot            => $docroot,
+      nginx_user               => $nginx::params::service_user,
+      nginx_logdir             => $nginx::params::logdir,
+      nginx_confdir            => $nginx::params::confdir,
+      nginx_blockdir           => $nginx::params::blockdir,
+      nginx_docroot            => $nginx::params::docroot,
       nginx_worker_connections => $worker_connections,
       nginx_sendfile           => $sendfile_config,
       nginx_tcp_nodelay        => $tcp_nodelay,
       nginx_keepalive_timeout  => $keepalive_timeout,
       }),
-    notify => Service[$service_name],
+    notify => Service[$nginx::params::service_name],
   }
 
-  service { $service_name:
+  service { $nginx::params::service_name:
     ensure => running,
     enable => $enable_onboot,
   }
